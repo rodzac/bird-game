@@ -1,50 +1,27 @@
+import { Fps } from './fps.js';
+
 export class Background {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth
         this.gameHeight = gameHeight
-        this.sunPositionY = 0
-        this.sunPositionX = this.gameWidth / 2
-        this.sunsetSpeed = 5;
-        this.frameTimer = 0
-        this.fps = 9
-        this.frameInterval = 1000 / this.fps
+        // this.sunPositionY = 0
+        // this.sunPositionX = this.gameWidth / 2
+        // this.sunsetSpeed = 5;
         // this.state = 'day'      // day, sunset, night, sunrising
-        this.state = new Sunset(this)
-        this.framesSinceLastStateChange = 0
-        this.skyColors = []
+        // this.state = new Sunset(this)
+        this.state = new Day(this)
+        // this.framesSinceLastStateChange = 0
+        // this.skyColors = []
     }
 
     draw(context) {
-        // let gradient = null
-        // if (this.state === "day") {
-        //     gradient = context.createLinearGradient(this.gameWidth - this.sunPositionY, this.gameHeight / 2, this.gameWidth, this.sunPositionY)
-        //     console.log(`(${this.gameWidth - this.sunPositionY}, ${this.gameHeight / 2}), (${this.gameWidth}, ${this.sunPositionY})`)
-        //     gradient.addColorStop(0, "#87CEEB")
-        //     gradient.addColorStop(1, "#E0F6FF")
-        // } else if (this.state === "sunset") {
-
-
-        //     // gradient = context.createLinearGradient(this.gameWidth / 2, this.gameHeight + this.sunPositionY -100, this.gameWidth / 2, this.gameHeight)
-        //     // // let colorRatio = 1 / this.skyColors.length
-        //     // this.skyColors.forEach((current) => {
-        //     //     // gradient.addColorStop(colorRatio + (i * colorRatio), color)
-        //     //     console.log(current)
-        //     //     gradient.addColorStop(current.ratio, current.color)
-        //     // })
-            
-        //     // } else if (this.state === "night") {
-        // //     gradient.addColorStop(0, "#87CEEB")
-        // //     gradient.addColorStop(1, "#E0F6FF")
-        // // } else if (this.state === "sunrising") {
-        // //     gradient.addColorStop(0, "#87CEEB")
-        // //     gradient.addColorStop(1, "#E0F6FF")
-        // }
-
         context.fillStyle = this.state.draw(context)
         context.fillRect(0,  0, this.gameWidth, this.gameHeight)
     }
 
-    update(deltaTime) {           
+    update(deltaTime) {
+        this.state.update(deltaTime)
+
         // if (this.frameTimer > this.frameInterval) {
         //     if (this.state === "day") {
         //         this.sunPositionY += this.sunsetSpeed
@@ -82,7 +59,6 @@ export class Background {
 
        
         // if (this.state === "sunset") {
-            this.state.update(deltaTime)
             // if (this.framesSinceLastStateChange < 4 * this.fps)            this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F"]
             // else if (this.framesSinceLastStateChange === 6 * this.fps)     this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E"]
             // else if (this.framesSinceLastStateChange === 8 * this.fps)     this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E", "#F5BD1F"]
@@ -94,20 +70,18 @@ export class Background {
             
         // }
     }
+
+    updateState(state) {
+        this.state = state
+    }
 }
 
-class Sunset {
+class Day {
     constructor(background) {
-        this.background = background;
+        this.background = background
+        this.fps = new Fps(9)
         this.sunPositionY = 0
-        // this.sunPositionX = this.gameWidth / 2
-        this.sunsetSpeed = 5;
-        this.frameTimer = 0
-        this.fps = 9
-        this.frameInterval = 1000 / this.fps
-        // this.state = 'day'      // day, sunset, night, sunrising
-        this.state = "sunset"
-        this.framesSinceLastStateChange = 0
+        this.sunsetSpeed = 1;
         this.skyColors = []
         this.blueSky = {
             red: 135,
@@ -117,24 +91,73 @@ class Sunset {
     }
 
     draw(context) {
-        // console.log(`width b: ${this.background.gameWidth}, e: ${this.background.gameWidth}`)
-        // console.log(`height b: ${this.background.gameHeight + this.sunPositionY - 100}, e: ${this.background.gameHeight}`)
-        let gradient = context.createLinearGradient(this.background.gameWidth, this.background.gameHeight + this.sunPositionY - 100, this.background.gameWidth, this.background.gameHeight)
-        // let colorRatio = 1 / this.skyColors.length
+        let gradient = context.createLinearGradient(this.background.gameWidth - this.sunPositionY, this.background.gameHeight / 2, this.background.gameWidth, this.sunPositionY)
+        // gradient.addColorStop(0, "#87CEEB")
+        // gradient.addColorStop(1, "#E0F6FF")
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
-
         return gradient
     }
 
     update(deltaTime) {
+        this.fps.update(deltaTime)
+
         const color = (color, ratio) => {
             return {color, ratio}
         }
 
         const inRange = (low, high) => {
-            return this.framesSinceLastStateChange >= (low * this.fps) && this.framesSinceLastStateChange < (high * this.fps)
+            let seconds = this.fps.secondsSinceLastRestart()
+            return seconds >= low && seconds < high
+        }
+
+        if (this.fps.hasFrameChanged()) {
+            this.sunPositionY += this.sunsetSpeed
+            this.skyColors = [color("#87CEEB", 0), color("#E0F6FF", 1)]
+        }
+
+        // if (this.fps.hasSecondChanged()) {
+        //     this.sunPositionY -= 1
+        //     this.blueSky.red -= 20
+        //     this.blueSky.green -= 10
+        //     this.blueSky.blue -= 3
+        // }
+    }
+}
+
+class Sunset {
+    constructor(background) {
+        this.background = background
+        this.fps = new Fps(9)
+        this.sunPositionY = 0
+        this.skyColors = []
+        this.blueSky = {
+            red: 135,
+            green: 206,
+            blue: 235,
+        }
+    }
+
+    draw(context) {
+        let gradient = context.createLinearGradient(this.background.gameWidth, this.background.gameHeight + this.sunPositionY - 100, this.background.gameWidth, this.background.gameHeight)
+        this.skyColors.forEach((current) => {
+            gradient.addColorStop(current.ratio, current.color)
+        })
+        return gradient
+    }
+
+    update(deltaTime) {
+        this.fps.update(deltaTime)
+
+        const color = (color, ratio) => {
+            return {color, ratio}
+        }
+
+        const inRange = (low, high) => {
+
+            let seconds = this.fps.secondsSinceLastRestart()
+            return seconds >= low && seconds < high
         }
 
         if (inRange(0, 20)) {
@@ -159,13 +182,7 @@ class Sunset {
         //     this.skyColors = ["#08183A", "#152852", "#4B3D60", "#FD5E53", "#FC9C54", "#FFE373"]
         // }
 
-        this.frameTimer += deltaTime
-        if (this.frameTimer > this.frameInterval) {
-            this.framesSinceLastStateChange++
-            this.frameTimer = 0
-        }
-
-        if (this.framesSinceLastStateChange % 9 === 0) {
+        if (this.fps.hasSecondChanged()) {
             this.sunPositionY -= 1
             this.blueSky.red -= 20
             this.blueSky.green -= 10

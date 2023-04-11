@@ -4,14 +4,7 @@ export class Background {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth
         this.gameHeight = gameHeight
-        // this.sunPositionY = 0
-        // this.sunPositionX = this.gameWidth / 2
-        // this.sunsetSpeed = 5;
-        // this.state = 'day'      // day, sunset, night, sunrising
-        // this.state = new Sunset(this)
         this.state = new Day(this)
-        // this.framesSinceLastStateChange = 0
-        // this.skyColors = []
     }
 
     draw(context) {
@@ -21,54 +14,6 @@ export class Background {
 
     update(deltaTime) {
         this.state.update(deltaTime)
-
-        // if (this.frameTimer > this.frameInterval) {
-        //     if (this.state === "day") {
-        //         this.sunPositionY += this.sunsetSpeed
-        //     } else if (this.state === "sunset") {
-        //         // if (this.framesSinceLastStateChange < 15 *this.fps) this.sunPositionY -= 1
-        //         // else                                                this.sunPositionY += 1
-        //         this.sunPositionY -= 1
-        //     }
-
-        //     // if (this.state === "sunset") {
-        //     //     this.sunPositionX -= 5
-        //     // }
-
-        //     this.frameTimer = 0
-        //     this.framesSinceLastStateChange++
-        //     // console.log(this.state, this.sunPosition, this.framesSinceLastStateChange)
-        // } else {
-        //     this.frameTimer += deltaTime
-        // }
-
-        // let previousState = this.state
-        // if (this.state === "day" && this.framesSinceLastStateChange === 100) {
-        //     this.state = "sunset"
-        // } else if (this.state === "sunset" && this.framesSinceLastStateChange === 30 * this.fps) {
-        //     this.state = "night"
-        // } else if (this.state === "night" && this.framesSinceLastStateChange === 100) {
-        //     this.state = "sunrising"
-        // } else if (this.state === "sunrising" && this.framesSinceLastStateChange === 20 * this.fps) {
-        //     this.state = "day"
-        // }
-
-        // if (previousState !== this.state) {
-        //     this.framesSinceLastStateChange = 0
-        // }
-
-       
-        // if (this.state === "sunset") {
-            // if (this.framesSinceLastStateChange < 4 * this.fps)            this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F"]
-            // else if (this.framesSinceLastStateChange === 6 * this.fps)     this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E"]
-            // else if (this.framesSinceLastStateChange === 8 * this.fps)     this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E", "#F5BD1F"]
-            // else if (this.framesSinceLastStateChange === 10 * this.fps)     this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E", "#F5BD1F", "#FF9E05"]
-            // else if (this.framesSinceLastStateChange === 12 * this.fps)    this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E", "#F5BD1F", "#FF9E05", "#FD7654"]
-            // else if (this.framesSinceLastStateChange === 14 * this.fps)    this.skyColors = ["#87CEEB", "#E0F6FF", "#FFEB2F", " #FFD90E", "#F5BD1F", "#FF9E05", "#FD7654", "#FD5E52"]
-            // else if (this.framesSinceLastStateChange === 16 * this.fps)    this.skyColors = ["#E0F6FF", "#FFEB2F", " #FFD90E", "#F5BD1F", "#FF9E05", "#FD7654", "#FD5E52"]
-            // else if (this.framesSinceLastStateChange === 18 * this.fps)    this.skyColors = ["#FFEB2F", " #FFD90E", "#F5BD1F", "#FF9E05", "#FD7654", "#FD5E52"]
-            
-        // }
     }
 
     updateState(state) {
@@ -92,8 +37,6 @@ class Day {
 
     draw(context) {
         let gradient = context.createLinearGradient(this.background.gameWidth - this.sunPositionY, this.background.gameHeight / 2, this.background.gameWidth, this.sunPositionY)
-        // gradient.addColorStop(0, "#87CEEB")
-        // gradient.addColorStop(1, "#E0F6FF")
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
@@ -117,12 +60,9 @@ class Day {
             this.skyColors = [color("#87CEEB", 0), color("#E0F6FF", 1)]
         }
 
-        // if (this.fps.hasSecondChanged()) {
-        //     this.sunPositionY -= 1
-        //     this.blueSky.red -= 20
-        //     this.blueSky.green -= 10
-        //     this.blueSky.blue -= 3
-        // }
+        if (this.fps.secondsSinceLastRestart() === 40) {
+            this.background.updateState(new Sunset(this.background))
+        }
     }
 }
 

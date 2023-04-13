@@ -61,7 +61,7 @@ window.addEventListener("load", function() {
             if (keysPressed.has("ArrowUp")) {
                 this.y -= this.speed
             } else if (keysPressed.has("ArrowDown")) {
-                this.y += this.speed + 2
+                this.y += this.speed + 1
             }
             if (this.y < 0)                     this.y = 0
             else if (this.y + this.height > this.gameHeight)  this.y = this.gameHeight - this.height

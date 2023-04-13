@@ -6,17 +6,21 @@ export class Fps {
         this.frameInterval = 1000 / this.fps
         this.frames = 0
         this.frameChanged = false
+        this.secondChanged = false
     }
 
     update(deltaTime) {
         this.frameTimer += deltaTime
-    
+        this.frameChanged = false
+        this.secondChanged = false
+
         if (this.frameTimer > this.frameInterval) {
             this.frames++
             this.frameTimer = 0
             this.frameChanged = true
-        } else {
-            this.frameChanged = false
+            if (this.frames % this.fps === 0) {
+                this.secondChanged = true
+            }
         }
     }
 
@@ -25,7 +29,7 @@ export class Fps {
     }
 
     hasSecondChanged() {
-        return this.frames % this.fps === 0
+        return this.secondChanged
     }
 
     framesSinceLastRestart() {

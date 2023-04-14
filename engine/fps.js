@@ -5,6 +5,7 @@ export class Fps {
         this.frameTimer = 0
         this.frameInterval = 1000 / this.fps
         this.frames = 0
+        this.seconds = 0
         this.frameChanged = false
         this.secondChanged = false
     }
@@ -20,6 +21,7 @@ export class Fps {
             this.frameChanged = true
             if (this.frames % this.fps === 0) {
                 this.secondChanged = true
+                this.seconds++
             }
         }
     }
@@ -37,11 +39,12 @@ export class Fps {
     }
 
     secondsSinceLastRestart() {
-        return  Math.trunc(this.frames / this.fps)
+        return  this.seconds
     }
 
     restart() {
         this.frames = 0
+        this.seconds = 0
     }
 
 }

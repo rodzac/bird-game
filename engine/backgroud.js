@@ -4,8 +4,8 @@ export class Background {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth
         this.gameHeight = gameHeight
-        this.state = new Day(this)
-        // this.state = new AlmostSunSet(this)
+        // this.state = new Day(this)
+        this.state = new Night(this)
     }
 
     draw(context) {
@@ -144,11 +144,6 @@ class Sunset {
             green: 146,
             blue: 215,
         }
-        // this.blueSky = {
-        //     red: 135,
-        //     green: 206,
-        //     blue: 235,
-        // }
     }
 
     draw(context) {
@@ -173,57 +168,68 @@ class Sunset {
                 return {color, ratio}
             }
     
-            // const inRange = (low, high) => {
-            //     let seconds = this.fps.secondsSinceLastRestart()
-            //     return seconds >= low && seconds < high
-            // }
-    
             if (this.fps.secondsSinceLastRestart() < 6) {
-                // if (this.fps.hasFrameChanged()) {
-                //     this.sunPositionY += 11
-                // }
                 this.skyColors = [this.blueSkyColor(0), color("#E0F6FF", 1)]
             } else if (this.fps.secondsSinceLastRestart() < 55) {
                 this.skyColors = [this.blueSkyColor(this.lightPosition), color("#E0F6FF", 1)]
-                
-                // if (this.fps.hasSecondChanged() && this.fps.secondsSinceLastRestart() % 2 === 0) {
-                //     // this.sunPositionY -= 1
-                //     // this.blueSky.red -= 20
-                //     // this.blueSky.green -= 10
-                //     // this.blueSky.blue -= 3
-                //     this.blueSky.red -= 10
-                //     this.blueSky.green -= 5
-                //     this.blueSky.blue -= 3
-                // }
-                if (this.fps.hasSecondChanged()) {
+                this.sunPositionY -= 2
+                this.blueSky.red -= 7
+                this.blueSky.green -= 4
+                this.blueSky.blue -= 3
+                this.lightPosition += 0.019
+            } else {
+                this.background.updateState(new Night(this.background))
+            }
+        }
+        // end state
+        // {"fps": 9, "frameTimer": 33.13999999995576, "frameInterval": 111.11111111111111, "frames": 2152, "frameChanged": false, "secondChanged": false }
+        // sunPositionY: 890
+        // lightPosition: 0.7480000000000006
+        // { "color": "rgb(-301, -46, 71)", "ratio": 0.9120000000000005 }
+        // { color: "#E0F6FF", ratio: 1 }
+    }
+
+    blueSkyColor(ratio) {
+        return {
+            color: `rgb(${this.blueSky.red}, ${this.blueSky.green}, ${this.blueSky.blue})`,
+            ratio
+        }
+    }
+}
+
+class Night {
+    constructor(background) {
+        this.background = background
+        this.fps = new Fps(9)
+        this.sunPositionY = 890
+        this.skyColors = []
+        this.lightPosition = 0.912
+        this.blueSky = {
+            red: 0,
+            green: 0,
+            blue: 71,
+        }
+    }
+
+    draw(context) {
+        let gradient = context.createLinearGradient(this.background.gameWidth - this.sunPositionY, this.background.gameHeight / 2, this.background.gameWidth, this.sunPositionY)
+        this.skyColors.forEach((current) => {
+            gradient.addColorStop(current.ratio, current.color)
+        })
+        return gradient
+    }
+
+    update(deltaTime) {
+        this.fps.update(deltaTime)
+        if (this.fps.hasSecondChanged() || this.fps.frames === 0) {   
+            if (this.fps.secondsSinceLastRestart() < 16) {
+                this.skyColors = [this.blueSkyColor(this.lightPosition), {color: "#E0F6FF", ratio: 1}]
+                if (this.fps.secondsSinceLastRestart() % 2 === 0) {
                     this.sunPositionY -= 2
-                    this.blueSky.red -= 7
-                    this.blueSky.green -= 4
-                    this.blueSky.blue -= 3
-                    this.lightPosition += 0.019
-    
-                    console.log(this)
-    
-    // blueSky: Object { red: -273, green: -30, blue: 127 }
-    // fps: Object { fps: 9, frameTimer: 100.47999999999593, frameInterval: 111.11111111111111, … }
-    // lightPosition: 0.7480000000000006
-    // 0: Object { color: "rgb(-273, -30, 127)", ratio: 0.7480000000000006 }
-    // ​​1: Object { color: "#E0F6FF", ratio: 1 }
-    
+                    this.blueSky.blue -= 5
                 }
             }
-    
-
         }
-        // if (inRange(0, 20)) {
-        //     console.log("state 1")
-        //     // this.skyColors = [color("#87CEEB", 0.33), color("#FFEB2F", 0.66), color("#FD5E52", 1)]
-        //     this.skyColors = [this.blueSkyColor(0.15), color("#FFEB2F", 0.3), color("#FFD90E", 0.45), color("#F5BD1F", 0.6), color("#FF9E05", 0.75), color("#FD7654", 0.9), color("#FD5E52", 1)]
-        // } else if (inRange(20, 30) ){
-        //     console.log("state 2")
-        //     this.skyColors = [this.blueSkyColor(0.15), color("#FFEB2F", 0.3), color("#FFD90E", 0.45), color("#F5BD1F", 0.6), color("#FF9E05", 0.75), color("#FD7654", 0.9), color("#FFE373", 1)]
-        // }
-
     }
 
     blueSkyColor(ratio) {

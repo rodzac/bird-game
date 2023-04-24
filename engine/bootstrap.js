@@ -126,6 +126,7 @@ window.addEventListener("load", function() {
     const player = new Player(canvas.width, canvas.height)
     const cloud1 = new Cloud(canvas.width, canvas.height, canvas.width + 50, 200)
     const cloud2 = new Cloud(canvas.width, canvas.height, canvas.width + 200, 400)
+    // const pine = new Obstacle("pine", 250, 320, canvas.width + 200, canvas.height - 200, canvas.width, canvas.height)
     const pine = new Obstacle("pine", 250, 320, canvas.width + 200, canvas.height - 200, canvas.width, canvas.height)
     const tree = new Obstacle("tree", 240, 483, canvas.width + 600, canvas.height - 200, canvas.width, canvas.height)
     let lastTime = 0

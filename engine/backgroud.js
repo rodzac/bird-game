@@ -5,12 +5,12 @@ export class Background {
         this.gameWidth = gameWidth
         this.gameHeight = gameHeight
         // this.state = new Day(this)
-        this.state = new Night(this)
+        // this.state = new Night(this)
+        this.state = new SunRising(this)
     }
 
     draw(context) {
-        context.fillStyle = this.state.draw(context)
-        context.fillRect(0,  0, this.gameWidth, this.gameHeight)
+        this.state.draw(context)
     }
 
     update(deltaTime) {
@@ -41,7 +41,9 @@ class AlmostSunSet {
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
-        return gradient
+        context.fillStyle = gradient
+        context.fillRect(0,  0, this.background.gameWidth, this.background.gameHeight)
+        // return gradient
     }
 
     update(deltaTime) {
@@ -95,7 +97,8 @@ class Day {
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
-        return gradient
+        context.fillStyle = gradient
+        context.fillRect(0,  0, this.background.gameWidth, this.background.gameHeight)
     }
 
     update(deltaTime) {
@@ -151,7 +154,8 @@ class Sunset {
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
-        return gradient
+        context.fillStyle = gradient
+        context.fillRect(0,  0, this.background.gameWidth, this.background.gameHeight)
     }
 
     update(deltaTime) {
@@ -216,7 +220,8 @@ class Night {
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
-        return gradient
+        context.fillStyle = gradient
+        context.fillRect(0,  0, this.background.gameWidth, this.background.gameHeight)
     }
 
     update(deltaTime) {
@@ -228,6 +233,8 @@ class Night {
                     this.sunPositionY -= 2
                     this.blueSky.blue -= 5
                 }
+            } else {
+                this.background.updateState(new NightStars(this.background))
             }
         }
     }
@@ -240,65 +247,89 @@ class Night {
     }
 }
 
+class NightStars {
+    constructor(background) {
+        this.background = background
+        this.fps = new Fps(9)
+        this.image = document.getElementById("stars")
+        this.alpha = 0.0
+        this.x = 0
+    }
+
+    draw(context) {
+        context.globalAlpha = this.alpha
+        context.drawImage(this.image, this.x, 0, this.background.gameWidth, this.background.gameHeight, 0, 0, 1334, 721)
+
+        // reset alpha to other layers
+        context.globalAlpha = 1
+    }
+
+    update(deltaTime) {
+        this.fps.update(deltaTime)
+        if (this.fps.hasFrameChanged() && this.fps.framesSinceLastRestart() % 7 == 0) {
+            this.x += 1
+        }
+        
+        if (this.fps.hasSecondChanged()) {
+            console.log(this.fps.secondsSinceLastRestart(), this.alpha)
+            if (this.fps.secondsSinceLastRestart() <= 15) {
+                this.alpha += 0.07
+            } else if (this.fps.secondsInRange(30, 50)) {
+                this.alpha -= 0.05
+            } else if (this.fps.secondsSinceLastRestart() === 50) {
+                this.background.updateState(new SunRising(this.background))
+            }
+        }
+    }
+}
+
 class SunRising {
     constructor(background) {
         this.background = background
         this.fps = new Fps(9)
         this.sunPositionY = 0
         this.skyColors = []
+        this.lightPosition = 0
         this.blueSky = {
-            red: 135,
-            green: 206,
-            blue: 235,
+            red: 0,
+            green: 0,
+            blue: 0,
         }
+        // end state
+        // red: 135,
+        // green: 206,
+        // blue: 235,
     }
 
     draw(context) {
-        let gradient = context.createLinearGradient(this.background.gameWidth, this.background.gameHeight + this.sunPositionY - 100, this.background.gameWidth, this.background.gameHeight)
+        // console.log(this)
+        let gradient = context.createLinearGradient(0, this.background.gameHeight + this.sunPositionY, this.background.gameWidth, 0)
         this.skyColors.forEach((current) => {
             gradient.addColorStop(current.ratio, current.color)
         })
-        return gradient
+        context.fillStyle = gradient
+        context.fillRect(0,  0, this.background.gameWidth, this.background.gameHeight)
     }
 
     update(deltaTime) {
         this.fps.update(deltaTime)
-
-        const color = (color, ratio) => {
-            return {color, ratio}
-        }
-
-        const inRange = (low, high) => {
-            let seconds = this.fps.secondsSinceLastRestart()
-            return seconds >= low && seconds < high
-        }
-
-        if (inRange(0, 20)) {
-            console.log("state 1")
-            this.skyColors = [this.blueSkyColor(0.15), color("#FFEB2F", 0.3), color("#FFD90E", 0.45), color("#F5BD1F", 0.6), color("#FF9E05", 0.75), color("#FD7654", 0.9), color("#FD5E52", 1)]
-        } else if (inRange(20, 30) ){
-            console.log("state 2")
-            this.skyColors = [this.blueSkyColor(0.15), color("#FFEB2F", 0.3), color("#FFD90E", 0.45), color("#F5BD1F", 0.6), color("#FF9E05", 0.75), color("#FD7654", 0.9), color("#FFE373", 1)]
-        }
-
-        // } else if (inRange(15, 30)) {
-        //     this.skyColors = [color("#87CEEB", 0.25), color("#FFEB2F", 0.35), color("#FFD90E", 0.5), color("#F5BD1F", 0.7), color("#FF9E05", 0.8), color("#FD7654", 0.95), color("#FD5E52", 1)]
-        //     // this.skyColors = ["#87CEEB", "#FD5E53", "#FC9C54", "#FFE373"]
-        // } else if (this.framesSinceLastStateChange === 18 * this.fps) {
-        //     this.skyColors = ["#4B3D60", "#87CEEB", "#FD5E53", "#FC9C54", "#FFE373"]
-        // } else if (this.framesSinceLastStateChange === 20 * this.fps) {
-        //     this.skyColors = ["#152852", "#4B3D60", "#87CEEB", "#FD5E53", "#FC9C54", "#FFE373"]
-        // } else if (this.framesSinceLastStateChange === 22 * this.fps) {
-        //     this.skyColors = ["#08183A", "#152852", "#4B3D60", "#87CEEB", "#FD5E53", "#FC9C54", "#FFE373"]
-        // } else if (this.framesSinceLastStateChange > 24 * this.fps) {
-        //     this.skyColors = ["#08183A", "#152852", "#4B3D60", "#FD5E53", "#FC9C54", "#FFE373"]
-        // }
-
-        if (this.fps.hasSecondChanged()) {
-            this.sunPositionY -= 1
-            this.blueSky.red -= 20
-            this.blueSky.green -= 10
-            this.blueSky.blue -= 3
+        if (this.fps.hasSecondChanged() || this.fps.frames === 0) {
+            console.log(this.fps.secondsSinceLastRestart())
+            if (this.fps.secondsSinceLastRestart() < 20) {
+                this.skyColors = [this.blueSkyColor(0)]
+                this.blueSky.red += 1
+                this.blueSky.green += 3
+                this.blueSky.blue += 5
+            } else if (this.fps.secondsSinceLastRestart() < 60) {
+                this.skyColors = [{color: "#E0F6FF", ratio: 0}, this.blueSkyColor(this.lightPosition)]
+                this.sunPositionY -= 2
+                this.blueSky.red += 1
+                this.blueSky.green += 3
+                this.blueSky.blue += 7
+                this.lightPosition += 0.019
+            } else {
+                this.background.updateState(new Day(this.background))
+            }
         }
     }
 

@@ -42,6 +42,10 @@ export class Fps {
         return  this.seconds
     }
 
+    secondsInRange(min, max) {
+        return this.seconds >= min && this.seconds < max
+    }
+
     restart() {
         this.frames = 0
         this.seconds = 0
